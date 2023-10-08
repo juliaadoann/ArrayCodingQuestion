@@ -43,8 +43,8 @@
 #
 # Args:
 # 	a0: pointer to a string to encrypt
-# 	a1: uppercase key, represented by a positive integer value
-#	a2: lowercase key, represented by a positive integer value
+# 	a1: a key, represented by a positive integer value (will not need this)
+#	a2: a key, represented by a positive integer value (will not need this)
 # Returns:
 #	a0: pointer to the encrypted string
 #
@@ -56,13 +56,13 @@ encrypt5lettword:
 #        STUDENT SOLUTION
 #----------------------------------
     # Get length of input string
-    li      t0, 5                    # Load length of input string in t1
+    li      t1, 5                    # Load length of input string in t1
     li      a1, 1                    # Initialize a value to be added to the characters
     
     # Dynamically allocate memory for the input string
 getLengthDone:            
     li      a7, 9                    # Set a7 (syscall number) to 9 (sbrk system call)
-    addi    a0, t0, 1                # a0 contains the length of string + 1 (for null terminator)
+    addi    a0, t1, 1                # a0 contains the length of string + 1 (for null terminator)
     ecall                            # Now a0 stores a pointer to 64 bytes of contiguous memory
     mv      s1, a0                   # Save the value of a0 to s1 (pointer to the allocated memory block)
     
@@ -71,15 +71,11 @@ getLengthDone:
     
     # Loop through each character of the input string
 encryptLoop:
-    lb      t1, 0(t0)                # Get the character currently being pointed to
-    beqz    t1, encryptDone          # If the character is null, done encrypting
-    add     t2, t1, a1               # Increment value of character by the lowercase key
-    addi    t2, t2, 97         
-    j       storeCharacter              # Done encrypting this character, go to continue to store it into the output string
-    
-storeCharacter:
-    add     t1, t1, a1
-    sb      t1, 0(a0)
+    lb      t2, 0(t0)                # Get the character currently being pointed to
+    beqz    t2, encryptDone          # If the character is null, done encrypting
+    #add     t2, t1, a1               
+    add     t2, t2, a1               # Increment value of character by the key
+    sb      t2, 0(a0)                # Replace the encrypted character in the string
     addi     t0, t0, 1               # Move to the next position in the output string
     addi     a0, a0, 1               # Move to the next position in the input string
     addi    a1, a1, 1
@@ -90,4 +86,3 @@ encryptDone:
     
     mv      a0, s1                   # Return the pointer to the encrypted string
     ret
-
