@@ -37,16 +37,17 @@
 
 
 .include "common.s"
+.data
+    inputString:
+	.asciz "FLASH"
 .text
 # -----------------------------------------------------------------------------
 # encrypt5lettword: This function encrypts a string by adding the ASCII value by 1 to the first letter, 2 to the second letter, 3 to the third letter, 4 to the fourth letter, and 5 to the fifth letter.
 #
 # Args:
 # 	a0: pointer to a string to encrypt
-# 	a1: a key, represented by a positive integer value (will not need this)
-#	a2: a key, represented by a positive integer value (will not need this)
 # Returns:
-#	a0: pointer to the encrypted string
+#	None
 #
 # Register Usage:
 # -----------------------------------------------------------------------------
@@ -56,28 +57,24 @@ encrypt5lettword:
 #        STUDENT SOLUTION
 #----------------------------------
     # Get length of input string
+    la      t0, inputString          # t0 is the pointer to the input string
     li      t1, 5                    # Load length of input string in t1
     li      a1, 1                    # Initialize a value to be added to the characters
     
-    # Dynamically allocate memory for the input string
-getLengthDone:            
+    # Dynamically allocate memory for the input string         
     li      a7, 9                    # Set a7 (syscall number) to 9 (sbrk system call)
     addi    a0, t1, 1                # a0 contains the length of string + 1 (for null terminator)
     ecall                            # Now a0 stores a pointer to 64 bytes of contiguous memory
     mv      s1, a0                   # Save the value of a0 to s1 (pointer to the allocated memory block)
     
-    # Reset input string pointer
-    la      t0, inputStream          # Move the pointer back to the beginning of the string
-    
     # Loop through each character of the input string
 encryptLoop:
     lb      t2, 0(t0)                # Get the character currently being pointed to
     beqz    t2, encryptDone          # If the character is null, done encrypting
-    #add     t2, t1, a1               
     add     t2, t2, a1               # Increment value of character by the key
     sb      t2, 0(a0)                # Replace the encrypted character in the string
-    addi     t0, t0, 1               # Move to the next position in the output string
-    addi     a0, a0, 1               # Move to the next position in the input string
+    addi    t0, t0, 1                # Move to the next position in the output string
+    addi    a0, a0, 1                # Move to the next position in the input string
     addi    a1, a1, 1
     j       encryptLoop              # Jump back to the encryptLoop to continue encrypting next character
     
@@ -86,3 +83,10 @@ encryptDone:
     
     mv      a0, s1                   # Return the pointer to the encrypted string
     ret
+
+
+
+
+
+
+
