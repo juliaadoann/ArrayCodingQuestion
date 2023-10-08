@@ -55,81 +55,39 @@ encrypt5lettword:
 #----------------------------------
 #        STUDENT SOLUTION
 #----------------------------------
-
-# Get length of input string
-    la      t0, inputStream          # t0 is the pointer to the input string
-    li      t2, 0                    # Initialize a counter
+    # Get length of input string
+    li      t0, 5                    # Load length of input string in t1
     li      a1, 1                    # Initialize a value to be added to the characters
-    
-
-getLength:
-    lb      t1, 0(t0)                # Get the character being pointed to
-    beqz    t1, getLengthDone        # Check if the character is the null terminator
-    addi    t2, t2, 1                # If not, increment the counter by 1
-    addi    t0, t0, 1                # Move pointer to the next character
-    j       getLength                # Go through the loop again
     
     # Dynamically allocate memory for the input string
 getLengthDone:            
     li      a7, 9                    # Set a7 (syscall number) to 9 (sbrk system call)
-    addi    a0, t2, 1                # a0 contains the length of string + 1 (for null terminator)
+    addi    a0, t0, 1                # a0 contains the length of string + 1 (for null terminator)
     ecall                            # Now a0 stores a pointer to 64 bytes of contiguous memory
     mv      s1, a0                   # Save the value of a0 to s1 (pointer to the allocated memory block)
     
     # Reset input string pointer
     la      t0, inputStream          # Move the pointer back to the beginning of the string
-
- # Loop through each character of the input string
+    
+    # Loop through each character of the input string
 encryptLoop:
-    lb      t3, 0(t0)                # Get the character currently being pointed to
-    beqz    t3, encryptDone          # If the character is null, done encrypting
-    
-    # Check if the character is lowercase
-    li      t4, 97                   # t4 stores ASCII value for 'a'
-    li      t5, 122                  # t5 stores ASCII value for 'z'
-    blt     t3, t4, uppercase        # If character is less than 'a', check if it's uppercase
-    bgt     t3, t5, storeCharacter   # If character is greater than 'z', it's not a letter, store in output string as is
-    
-    # Character is lowercase
-    addi    t3, t3, -97              # Get value of character in the range 0-25
-    add     x7, t3, a1               # Increment value of character by the lowercase key
-    addi    a1, a1, 1
-    li      t6, 26                   # t6 stores the value 26 (number of letters in the alphabet)
-    # remu    x7, x7, t6               # Ensure it wraps around the alphabet
-    addi    x7, x7, 97         
-    j       storeLetter              # Done encrypting this character, go to continue to store it into the output string
-    
-# Check if character is uppercase
-uppercase:
-    li      t4, 65                   # t4 stores ASCII value for 'A'
-    li      t5, 90                   # t5 stores ASCII value for 'Z'
-    blt     t3, t4, storeCharacter   # If character is less than 'A', it's not a letter, store in output string as is
-    bgt     t3, t5, storeCharacter   # If character is greater than 'Z', it's not a letter, store in output string as is
-    
-    addi    t3, t3, -65              # Get value of character in the range 0-25
-    add     x7, t3, a1               # Increment value of character by the uppercase key
-    addi    a1, a1, 1
-    li      t6, 26                   # t6 stores the value 26 (number of letters in the alphabet)
-    # remu    x7, x7, t6               # Ensure it wraps around the alphabet
-    addi    x7, x7, 65               # Add 65 go back within the ASCII range
-    j       storeLetter              # Done encrypting this character, go to continue to store it into the output string
+    lb      t1, 0(t0)                # Get the character currently being pointed to
+    beqz    t1, encryptDone          # If the character is null, done encrypting
+    add     t2, t1, a1               # Increment value of character by the lowercase key
+    addi    t2, t2, 97         
+    j       storeCharacter              # Done encrypting this character, go to continue to store it into the output string
     
 storeCharacter:
-    add     t3, t3, a1
-    sb      t3, 0(a0)
-    addi     a1, a1, 1
+    add     t1, t1, a1
+    sb      t1, 0(a0)
     addi     t0, t0, 1               # Move to the next position in the output string
     addi     a0, a0, 1               # Move to the next position in the input string
+    addi    a1, a1, 1
     j       encryptLoop              # Jump back to the encryptLoop to continue encrypting next character
-    
-storeLetter:
-    sb      x7, 0(a0)                # Store the encyrpted character in the output string
-    addi    t0, t0, 1                # Move to the next position in the output string
-    addi    a0, a0, 1                # Move to the next position in the input string
-    j       encryptLoop              # Jump back to encryptLoop to continue encrypting next character
     
 encryptDone:
     sb      x0, 0(a0)                # Null-terminate the output string
     
     mv      a0, s1                   # Return the pointer to the encrypted string
     ret
+
